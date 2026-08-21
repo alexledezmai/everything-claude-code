@@ -7,6 +7,7 @@ import { detectProject } from '../src/lib/project-detect.js'
 import { compareCheckpoints } from '../src/lib/checkpoint.js'
 import { generateCodemap, writeAdr, writeProductBible } from '../src/lib/docs.js'
 import { evaluateLearningEvent, promoteLearningEvent, loadRules } from '../src/lib/learning.js'
+import { createAdapterManifest, writeAllAdapters } from '../src/lib/adapters.js'
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const gate = path.join(root, 'examples', 'myvo-2.4c', 'gate.json')
@@ -164,6 +165,24 @@ const rules = loadRules(learningRoot)
 assert.equal(rules.length, 1)
 assert.equal(rules[0].rule.instruction, reusableEvent.instruction)
 
+const adapterRoot = path.join(regressionDir, 'adapter-project')
+fs.mkdirSync(adapterRoot, { recursive: true })
+const adapters = writeAllAdapters(adapterRoot)
+assert.equal(adapters.length, 4)
+const manifests = adapters.map((entry) => entry.manifest)
+for (const manifest of manifests) {
+  assert.equal(manifest.schema_version, 'nes.adapter.v1')
+  assert.equal(manifest.protocol_version, '1')
+  assert.equal(manifest.entrypoint, 'nes/src/cli.js')
+  assert.ok(fs.existsSync(path.join(adapterRoot, '.nes', 'adapters', manifest.adapter, 'manifest.json')))
+  assert.ok(fs.existsSync(path.join(adapterRoot, '.nes', 'adapters', manifest.adapter, 'INSTRUCTIONS.md')))
+}
+const canonicalCommands = JSON.stringify(createAdapterManifest('chatgpt').commands)
+for (const host of ['claude-code', 'codex', 'github-actions']) {
+  assert.equal(JSON.stringify(createAdapterManifest(host).commands), canonicalCommands)
+}
+assert.throws(() => createAdapterManifest('unsupported-host'), /Unsupported adapter/)
+
 fs.rmSync(regressionDir, { recursive: true, force: true })
 
 const detected = detectProject(root)
@@ -178,3 +197,4 @@ console.log(`Checkpoint control: ${checkpointDiff.status}`)
 console.log(`Codemap control: ${codemap.file_count} files indexed`)
 console.log('Living docs control: ADR + Product Bible generated')
 console.log('Learning control: reusable correction promoted, duplicate blocked, one-off ignored')
+console.log('Adapter control: 4 hosts share one canonical NES command contract')
