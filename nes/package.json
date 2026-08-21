@@ -17,7 +17,7 @@
     "learn": "node src/cli.js learn",
     "rules": "node src/cli.js rules",
     "adapter": "node src/cli.js adapter",
-    "selftest": "node tests/selftest.js"
+    "selftest": "node tests/selftest.js && node tests/bootstrap-selftest.js"
   },
   "engines": {
     "node": ">=20"
