@@ -1,11 +1,12 @@
 {
   "name": "navi-engineering-system",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
-  "description": "AI-agnostic engineering gates, verification, checkpoints, living documentation, persistent project rules, host adapters and non-destructive project bootstrap.",
+  "description": "AI-agnostic engineering gates, verification, checkpoints, living documentation, persistent project rules, host adapters, bootstrap and project hardening.",
   "scripts": {
     "init": "node src/cli.js init",
+    "doctor": "node src/cli.js doctor",
     "gate": "node src/cli.js gate",
     "checkpoint": "node src/cli.js checkpoint",
     "compare": "node src/cli.js compare",
@@ -17,7 +18,7 @@
     "learn": "node src/cli.js learn",
     "rules": "node src/cli.js rules",
     "adapter": "node src/cli.js adapter",
-    "selftest": "node tests/selftest.js && node tests/bootstrap-selftest.js"
+    "selftest": "node tests/selftest.js && node tests/bootstrap-selftest.js && node tests/hardening-selftest.js"
   },
   "engines": {
     "node": ">=20"
