@@ -5,6 +5,7 @@ import { detectProject } from './lib/project-detect.js'
 import { runGate } from './lib/gates.js'
 import { verifyProject } from './lib/verify.js'
 import { createCheckpoint, compareCheckpoints } from './lib/checkpoint.js'
+import { writeCodemap, writeAdr, writeProductBible } from './lib/docs.js'
 
 const [, , command, ...args] = process.argv
 const cwd = process.cwd()
@@ -14,11 +15,7 @@ if (command === 'detect') {
   print(detectProject(args[0] ? path.resolve(args[0]) : cwd))
 } else if (command === 'gate') {
   if (!args[0] || !args[1]) throw new Error('Usage: npm run gate -- <definition.json> <evidence.json> [baseline.json]')
-  const result = runGate(
-    path.resolve(args[0]),
-    path.resolve(args[1]),
-    args[2] ? path.resolve(args[2]) : null
-  )
+  const result = runGate(path.resolve(args[0]), path.resolve(args[1]), args[2] ? path.resolve(args[2]) : null)
   print(result)
   process.exitCode = result.status === 'PASS' ? 0 : 1
 } else if (command === 'verify') {
@@ -33,14 +30,21 @@ if (command === 'detect') {
   print(createCheckpoint({ root: cwd, id, gate, verification }))
 } else if (command === 'compare') {
   if (!args[0] || !args[1]) throw new Error('Usage: npm run compare -- <checkpoint-a.json> <checkpoint-b.json> [project-root]')
-  const result = compareCheckpoints(
-    path.resolve(args[0]),
-    path.resolve(args[1]),
-    args[2] ? path.resolve(args[2]) : cwd
-  )
+  const result = compareCheckpoints(path.resolve(args[0]), path.resolve(args[1]), args[2] ? path.resolve(args[2]) : cwd)
   print(result)
   process.exitCode = result.status === 'REGRESSION' ? 1 : 0
+} else if (command === 'codemap') {
+  print(writeCodemap(args[0] ? path.resolve(args[0]) : cwd))
+} else if (command === 'adr') {
+  if (!args[0]) throw new Error('Usage: npm run adr -- <adr.json> [project-root]')
+  const adr = JSON.parse(fs.readFileSync(path.resolve(args[0]), 'utf8'))
+  print(writeAdr(args[1] ? path.resolve(args[1]) : cwd, adr))
+} else if (command === 'bible') {
+  if (!args[0]) throw new Error('Usage: npm run bible -- <product.json> [capabilities.json] [project-root]')
+  const product = JSON.parse(fs.readFileSync(path.resolve(args[0]), 'utf8'))
+  const capabilities = args[1] ? JSON.parse(fs.readFileSync(path.resolve(args[1]), 'utf8')) : []
+  print(writeProductBible({ root: args[2] ? path.resolve(args[2]) : cwd, product, capabilities }))
 } else {
-  process.stderr.write('NES v0.2\nCommands: detect | gate | verify | checkpoint | compare\n')
+  process.stderr.write('NES v0.3\nCommands: detect | gate | verify | checkpoint | compare | codemap | adr | bible\n')
   process.exitCode = command ? 1 : 0
 }
