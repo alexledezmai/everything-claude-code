@@ -1,0 +1,17 @@
+{
+  "name": "navi-engineering-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI-agnostic engineering gates, verification and checkpoints.",
+  "scripts": {
+    "gate": "node src/cli.js gate",
+    "checkpoint": "node src/cli.js checkpoint",
+    "detect": "node src/cli.js detect",
+    "verify": "node src/cli.js verify",
+    "selftest": "node tests/selftest.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
