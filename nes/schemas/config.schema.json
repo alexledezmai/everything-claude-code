@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nes.dev/schemas/config.schema.json",
+  "title": "NES Project Configuration",
+  "type": "object",
+  "required": ["schema_version", "nes_version", "project", "policies"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "nes.config.v1" },
+    "nes_version": { "type": "string", "minLength": 1 },
+    "project": {
+      "type": "object",
+      "required": ["name", "detected"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "detected": {
+          "type": "object",
+          "required": ["runtime"],
+          "additionalProperties": true,
+          "properties": {
+            "runtime": { "type": "string" },
+            "package_manager": { "type": ["string", "null"] },
+            "framework": { "type": ["string", "null"] },
+            "database": { "type": ["string", "null"] },
+            "docker": { "type": "boolean" },
+            "tests": { "type": ["string", "null"] },
+            "e2e": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "required": ["protect_existing", "require_gate_before_release", "learning_mode"],
+      "additionalProperties": false,
+      "properties": {
+        "protect_existing": { "const": true },
+        "require_gate_before_release": { "type": "boolean" },
+        "learning_mode": { "type": "string", "enum": ["curated", "off"] }
+      }
+    }
+  }
+}
