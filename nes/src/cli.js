@@ -8,12 +8,15 @@ import { createCheckpoint, compareCheckpoints } from './lib/checkpoint.js'
 import { writeCodemap, writeAdr, writeProductBible } from './lib/docs.js'
 import { promoteLearningEvent, loadRules } from './lib/learning.js'
 import { writeAdapter, writeAllAdapters } from './lib/adapters.js'
+import { initProject } from './lib/init.js'
 
 const [, , command, ...args] = process.argv
 const cwd = process.cwd()
 const print = (value) => process.stdout.write(`${JSON.stringify(value, null, 2)}\n`)
 
-if (command === 'detect') {
+if (command === 'init') {
+  print(initProject(args[0] ? path.resolve(args[0]) : cwd))
+} else if (command === 'detect') {
   print(detectProject(args[0] ? path.resolve(args[0]) : cwd))
 } else if (command === 'gate') {
   if (!args[0] || !args[1]) throw new Error('Usage: npm run gate -- <definition.json> <evidence.json> [baseline.json]')
@@ -60,6 +63,6 @@ if (command === 'detect') {
   if (adapter === 'all') print(writeAllAdapters(root))
   else print(writeAdapter(root, adapter))
 } else {
-  process.stderr.write('NES v0.5\nCommands: detect | gate | verify | checkpoint | compare | codemap | adr | bible | learn | rules | adapter\n')
+  process.stderr.write('NES v0.6\nCommands: init | detect | gate | verify | checkpoint | compare | codemap | adr | bible | learn | rules | adapter\n')
   process.exitCode = command ? 1 : 0
 }
