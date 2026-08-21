@@ -1,9 +1,9 @@
 {
   "name": "navi-engineering-system",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
-  "description": "AI-agnostic engineering gates, verification, checkpoints, living documentation and persistent project rules.",
+  "description": "AI-agnostic engineering gates, verification, checkpoints, living documentation, persistent project rules and host adapters.",
   "scripts": {
     "gate": "node src/cli.js gate",
     "checkpoint": "node src/cli.js checkpoint",
@@ -15,6 +15,7 @@
     "bible": "node src/cli.js bible",
     "learn": "node src/cli.js learn",
     "rules": "node src/cli.js rules",
+    "adapter": "node src/cli.js adapter",
     "selftest": "node tests/selftest.js"
   },
   "engines": {
