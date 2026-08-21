@@ -45,7 +45,7 @@ export function detectProject(root = process.cwd()) {
         ? 'bun'
         : exists(root, 'package-lock.json')
           ? 'npm'
-          : declaredPackageManager(packageJson) ?? (packageInfo.exists ? 'npm' : null)
+          : declaredPackageManager(packageJson)
 
   const framework = dependencies.next
     ? 'nextjs'
