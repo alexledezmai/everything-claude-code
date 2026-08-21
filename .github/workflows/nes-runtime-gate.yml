@@ -14,10 +14,10 @@ permissions:
   contents: read
 
 jobs:
-  nes-0-1a:
-    name: NES-0.1A Foundation Runtime Gate
+  full-suite:
+    name: NES RC Full Suite (ubuntu)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -31,7 +31,7 @@ jobs:
       - name: Show runtime
         run: node --version
 
-      - name: Run NES self-test
+      - name: Run full NES self-test
         working-directory: nes
         run: npm run selftest
 
@@ -39,11 +39,35 @@ jobs:
         working-directory: nes
         run: npm run detect
 
-      - name: Gate summary
+  portability:
+    name: NES RC Portability (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Show runtime
+        run: node --version
+
+      - name: Bootstrap self-test
         working-directory: nes
-        run: |
-          echo 'NES-0.1A runtime gate completed.'
-          echo 'Required evidence:'
-          echo '- MYVO-2.4C baseline: 10/10 PASS'
-          echo '- Negative control: exactly 1 expected failure'
-          echo '- Project detector: Node runtime detected'
+        run: node tests/bootstrap-selftest.js
+
+      - name: Hardening self-test
+        working-directory: nes
+        run: node tests/hardening-selftest.js
+
+      - name: Release candidate self-test
+        working-directory: nes
+        run: node tests/rc-selftest.js
