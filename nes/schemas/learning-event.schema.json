@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nes.dev/schemas/learning-event.schema.json",
+  "title": "NES Learning Event",
+  "type": "object",
+  "required": ["type", "title", "instruction"],
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["user_correction", "regression", "debugging_pattern", "workaround", "project_pattern", "one_off"]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "instruction": { "type": "string", "minLength": 1 },
+    "scope": { "type": "string", "enum": ["project", "global"] },
+    "source_id": { "type": "string" },
+    "source": { "type": "string" },
+    "applies_to": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "promote": { "type": "boolean" },
+    "metadata": { "type": "object" }
+  }
+}
