@@ -9,7 +9,7 @@ function getByPath(value, dottedPath) {
   return dottedPath.split('.').reduce((acc, key) => acc?.[key], value)
 }
 
-function validateDefinition(definition) {
+export function validateGateDefinition(definition) {
   const errors = []
   const allowedTypes = new Set(['capability', 'regression', 'architecture', 'security', 'production'])
   const allowedOps = new Set(['eq', 'truthy', 'gte', 'lte', 'exists', 'preserve', 'gte-baseline', 'lte-baseline'])
@@ -40,8 +40,11 @@ function validateDefinition(definition) {
   if (errors.length) {
     const error = new Error(`Invalid gate definition:\n- ${errors.join('\n- ')}`)
     error.code = 'NES_INVALID_GATE_DEFINITION'
+    error.details = errors
     throw error
   }
+
+  return { valid: true, errors: [] }
 }
 
 function evaluateCheck(check, evidence, baseline = null) {
@@ -86,12 +89,14 @@ function sha256(value) {
 
 export function runGate(definitionPath, evidencePath, baselinePath = null) {
   const definition = readJson(definitionPath)
-  validateDefinition(definition)
+  validateGateDefinition(definition)
 
   const evidence = readJson(evidencePath)
   const baseline = baselinePath ? readJson(baselinePath) : null
   if (definition.type === 'regression' && definition.checks.some((c) => ['preserve', 'gte-baseline', 'lte-baseline'].includes(c.op)) && !baseline) {
-    throw new Error('Regression gate uses baseline operators but no baseline evidence was provided')
+    const error = new Error('Regression gate uses baseline operators but no baseline evidence was provided')
+    error.code = 'NES_BASELINE_REQUIRED'
+    throw error
   }
 
   const checks = definition.checks.map((check) => evaluateCheck(check, evidence, baseline))
