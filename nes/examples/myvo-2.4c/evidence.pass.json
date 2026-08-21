@@ -1,0 +1,17 @@
+{
+  "real_event_local_durable": true,
+  "first_local_event_id": "EVT-c355cb3d99b52fdf444ac571",
+  "revoked_credential_retained_queue": true,
+  "active_credential_resumed_delivery": true,
+  "accepted_last_acked_at": "2026-08-20T07:21:42.803Z",
+  "duplicate_replay_local_event_id": "EVT-c355cb3d99b52fdf444ac571",
+  "duplicate_replay_ingest_event_id": "fb7421d2-1b43-596e-8d21-26575babe911",
+  "duplicate_replay_completed": true,
+  "unauthorized_camera_quarantined": true,
+  "quarantine_code": "camera_not_authorized",
+  "kill_during_sync_retained_queue": true,
+  "kill_recovery_delivered": true,
+  "final_sent_total": 5,
+  "final_quarantined_total": 2,
+  "gate_db_path": "/data/myvo-phase-2.4c"
+}
