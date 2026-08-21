@@ -3,6 +3,8 @@ import path from 'node:path'
 import { detectProject } from './project-detect.js'
 import { writeAllAdapters } from './adapters.js'
 
+const NES_VERSION = '1.0.0-rc.1'
+
 function readPackageName(root) {
   const file = path.join(root, 'package.json')
   if (!fs.existsSync(file)) return path.basename(root)
@@ -38,7 +40,7 @@ export function initProject(root = process.cwd(), { adapters = true } = {}) {
 
   const config = {
     schema_version: 'nes.config.v1',
-    nes_version: '0.6.0',
+    nes_version: NES_VERSION,
     project: {
       name: readPackageName(resolved),
       detected: {
@@ -91,6 +93,7 @@ export function initProject(root = process.cwd(), { adapters = true } = {}) {
 
   return {
     schema_version: 'nes.init-result.v1',
+    nes_version: NES_VERSION,
     root: resolved,
     config_file: configFile,
     created,
