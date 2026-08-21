@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nes.dev/schemas/adapter.schema.json",
+  "title": "NES Adapter Manifest",
+  "type": "object",
+  "required": ["schema_version", "adapter", "protocol_version", "entrypoint", "commands"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "nes.adapter.v1" },
+    "adapter": { "type": "string", "enum": ["chatgpt", "claude-code", "codex", "github-actions"] },
+    "protocol_version": { "type": "string", "minLength": 1 },
+    "entrypoint": { "type": "string", "minLength": 1 },
+    "commands": {
+      "type": "object",
+      "required": ["detect", "verify", "gate", "checkpoint", "compare", "codemap", "adr", "bible", "learn", "rules"],
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  }
+}
