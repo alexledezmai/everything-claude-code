@@ -4,6 +4,7 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import { runGate } from '../src/lib/gates.js'
 import { detectProject } from '../src/lib/project-detect.js'
+import { compareCheckpoints } from '../src/lib/checkpoint.js'
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const gate = path.join(root, 'examples', 'myvo-2.4c', 'gate.json')
@@ -52,13 +53,38 @@ fs.writeFileSync(candidateFailFile, JSON.stringify(candidateFail))
 
 const regressionPass = runGate(regressionGateFile, candidatePassFile, baselineFile)
 const regressionFail = runGate(regressionGateFile, candidateFailFile, baselineFile)
-fs.rmSync(regressionDir, { recursive: true, force: true })
 
 assert.equal(regressionPass.status, 'PASS')
 assert.equal(regressionPass.summary.passed, 3)
 assert.equal(regressionFail.status, 'FAIL')
 assert.equal(regressionFail.summary.failed, 1)
 assert.ok(regressionPass.baseline_sha256)
+
+const checkpointA = path.join(regressionDir, 'checkpoint-a.json')
+const checkpointB = path.join(regressionDir, 'checkpoint-b.json')
+fs.writeFileSync(checkpointA, JSON.stringify({
+  schema_version: 'nes.checkpoint.v1',
+  id: 'A',
+  created_at: new Date().toISOString(),
+  git: { sha: 'same', branch: 'test', dirty_files: [] },
+  gate: { status: 'PASS' },
+  verification: { status: 'READY' }
+}))
+fs.writeFileSync(checkpointB, JSON.stringify({
+  schema_version: 'nes.checkpoint.v1',
+  id: 'B',
+  created_at: new Date().toISOString(),
+  git: { sha: 'same', branch: 'test', dirty_files: [] },
+  gate: { status: 'FAIL' },
+  verification: { status: 'NOT_READY' }
+}))
+
+const checkpointDiff = compareCheckpoints(checkpointA, checkpointB, root)
+assert.equal(checkpointDiff.status, 'REGRESSION')
+assert.equal(checkpointDiff.gate.regression, true)
+assert.equal(checkpointDiff.verification.regression, true)
+
+fs.rmSync(regressionDir, { recursive: true, force: true })
 
 const detected = detectProject(root)
 assert.equal(detected.runtime, 'node')
@@ -68,3 +94,4 @@ console.log('NES SELFTEST PASS')
 console.log(`MYVO-2.4C baseline: ${passResult.summary.passed}/${passResult.summary.total} PASS`)
 console.log(`Negative control: ${failResult.summary.failed} expected failure detected`)
 console.log(`Regression control: ${regressionPass.summary.passed}/3 PASS; ${regressionFail.summary.failed} expected regression detected`)
+console.log(`Checkpoint control: ${checkpointDiff.status}`)
