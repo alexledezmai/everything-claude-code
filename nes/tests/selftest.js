@@ -6,6 +6,7 @@ import { runGate } from '../src/lib/gates.js'
 import { detectProject } from '../src/lib/project-detect.js'
 import { compareCheckpoints } from '../src/lib/checkpoint.js'
 import { generateCodemap, writeAdr, writeProductBible } from '../src/lib/docs.js'
+import { evaluateLearningEvent, promoteLearningEvent, loadRules } from '../src/lib/learning.js'
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const gate = path.join(root, 'examples', 'myvo-2.4c', 'gate.json')
@@ -127,6 +128,42 @@ assert.ok(bibleText.includes('Live Intelligence'))
 assert.ok(bibleText.includes('MYVO-2.4C'))
 assert.ok(bibleText.includes('ADR-001'))
 
+const learningRoot = path.join(regressionDir, 'learning-project')
+fs.mkdirSync(learningRoot, { recursive: true })
+const reusableEvent = {
+  type: 'user_correction',
+  title: 'Preserve established views',
+  instruction: 'Feature additions must extend existing UI architecture and must not replace established views unless explicitly requested.',
+  scope: 'project',
+  source_id: 'selftest-correction-001',
+  applies_to: ['ui', 'feature-development']
+}
+const learningDecision = evaluateLearningEvent(reusableEvent)
+assert.equal(learningDecision.promotable, true)
+
+const promoted = promoteLearningEvent(learningRoot, reusableEvent)
+assert.equal(promoted.promoted, true)
+assert.equal(promoted.rule.id, 'RULE-001')
+assert.ok(fs.existsSync(promoted.json_file))
+assert.ok(fs.existsSync(promoted.markdown_file))
+
+const duplicate = promoteLearningEvent(learningRoot, reusableEvent)
+assert.equal(duplicate.promoted, false)
+assert.equal(duplicate.duplicate, true)
+
+const oneOff = promoteLearningEvent(learningRoot, {
+  type: 'one_off',
+  title: 'Temporary demo copy',
+  instruction: 'Use temporary copy for this one demonstration only.',
+  scope: 'project'
+})
+assert.equal(oneOff.promoted, false)
+assert.equal(oneOff.decision.promotable, false)
+
+const rules = loadRules(learningRoot)
+assert.equal(rules.length, 1)
+assert.equal(rules[0].rule.instruction, reusableEvent.instruction)
+
 fs.rmSync(regressionDir, { recursive: true, force: true })
 
 const detected = detectProject(root)
@@ -140,3 +177,4 @@ console.log(`Regression control: ${regressionPass.summary.passed}/3 PASS; ${regr
 console.log(`Checkpoint control: ${checkpointDiff.status}`)
 console.log(`Codemap control: ${codemap.file_count} files indexed`)
 console.log('Living docs control: ADR + Product Bible generated')
+console.log('Learning control: reusable correction promoted, duplicate blocked, one-off ignored')
