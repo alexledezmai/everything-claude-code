@@ -21,7 +21,7 @@ function runStep(name, command, args, cwd) {
     exit_code: result.status,
     duration_ms: Date.now() - started,
     stdout: (result.stdout ?? '').slice(-8000),
-    stderr: (result.stderr ?? '').slice(-8000)
+    stderr: (result.stderr ?? result.error?.message ?? '').slice(-8000)
   }
 }
 
@@ -46,6 +46,28 @@ export function verifyProject(root = process.cwd()) {
   const { project, plan } = buildVerificationPlan(root)
   const results = []
 
+  if (project.issues?.length) {
+    return {
+      schema_version: 'nes.verification-result.v1',
+      status: 'NOT_READY',
+      project,
+      results,
+      reason: 'PROJECT_DETECTION_ISSUES',
+      generated_at: new Date().toISOString()
+    }
+  }
+
+  if (plan.length === 0) {
+    return {
+      schema_version: 'nes.verification-result.v1',
+      status: 'NOT_READY',
+      project,
+      results,
+      reason: 'NO_VERIFICATION_STEPS',
+      generated_at: new Date().toISOString()
+    }
+  }
+
   for (const step of plan) {
     const result = runStep(step.name, step.command, step.args, root)
     results.push(result)
@@ -58,6 +80,7 @@ export function verifyProject(root = process.cwd()) {
     status: failed.length ? 'NOT_READY' : 'READY',
     project,
     results,
+    reason: failed.length ? 'VERIFICATION_FAILED' : null,
     generated_at: new Date().toISOString()
   }
 }
