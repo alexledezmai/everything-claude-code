@@ -28,10 +28,11 @@ function runStep(name, command, args, cwd) {
 export function buildVerificationPlan(root = process.cwd()) {
   const project = detectProject(root)
   const plan = []
+  const packageManager = project.packageManager ?? (project.runtime === 'node' ? 'npm' : null)
 
   for (const [name, script] of Object.entries(project.scripts)) {
     if (!script) continue
-    const command = commandFor(project.packageManager, name)
+    const command = commandFor(packageManager, name)
     if (command) plan.push({ name, command: command[0], args: command[1] })
   }
 
