@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nes.dev/schemas/checkpoint.schema.json",
+  "title": "NES Checkpoint",
+  "type": "object",
+  "required": ["schema_version", "id", "created_at", "git"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "nes.checkpoint.v1" },
+    "id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "git": {
+      "type": "object",
+      "required": ["sha", "branch", "dirty_files"],
+      "additionalProperties": false,
+      "properties": {
+        "sha": { "type": ["string", "null"] },
+        "branch": { "type": ["string", "null"] },
+        "dirty_files": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "gate": { "type": ["object", "null"] },
+    "verification": { "type": ["object", "null"] }
+  }
+}
