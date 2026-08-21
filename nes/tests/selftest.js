@@ -5,6 +5,7 @@ import assert from 'node:assert/strict'
 import { runGate } from '../src/lib/gates.js'
 import { detectProject } from '../src/lib/project-detect.js'
 import { compareCheckpoints } from '../src/lib/checkpoint.js'
+import { generateCodemap, writeAdr, writeProductBible } from '../src/lib/docs.js'
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const gate = path.join(root, 'examples', 'myvo-2.4c', 'gate.json')
@@ -84,6 +85,48 @@ assert.equal(checkpointDiff.status, 'REGRESSION')
 assert.equal(checkpointDiff.gate.regression, true)
 assert.equal(checkpointDiff.verification.regression, true)
 
+const codemap = generateCodemap(root)
+assert.equal(codemap.schema_version, 'nes.codemap.v1')
+assert.equal(codemap.project.runtime, 'node')
+assert.ok(codemap.file_count > 0)
+assert.ok(codemap.content_sha256)
+
+const docsRoot = path.join(regressionDir, 'docs-project')
+fs.mkdirSync(path.join(docsRoot, 'src'), { recursive: true })
+fs.writeFileSync(path.join(docsRoot, 'package.json'), JSON.stringify({ name: 'docs-test', scripts: {} }))
+fs.writeFileSync(path.join(docsRoot, 'src', 'index.js'), 'export const ok = true\n')
+
+const adrResult = writeAdr(docsRoot, {
+  id: 'ADR-001',
+  title: 'Durable events',
+  status: 'accepted',
+  context: 'Events must survive transient failures.',
+  decision: 'Persist before delivery.',
+  consequences: ['Delivery can resume after restart.'],
+  alternatives: ['Best-effort delivery only.']
+})
+assert.ok(fs.existsSync(adrResult.json_file))
+assert.ok(fs.existsSync(adrResult.markdown_file))
+
+const bibleResult = writeProductBible({
+  root: docsRoot,
+  product: { name: 'myvo', description: 'Retail intelligence platform.' },
+  capabilities: [{
+    id: 'MYVO-LIVE',
+    name: 'Live Intelligence',
+    status: 'verified',
+    description: 'Live operational intelligence from edge events.',
+    source_paths: ['src/index.js'],
+    gate_ids: ['MYVO-2.4C'],
+    adr_ids: ['ADR-001']
+  }]
+})
+assert.ok(fs.existsSync(bibleResult.file))
+const bibleText = fs.readFileSync(bibleResult.file, 'utf8')
+assert.ok(bibleText.includes('Live Intelligence'))
+assert.ok(bibleText.includes('MYVO-2.4C'))
+assert.ok(bibleText.includes('ADR-001'))
+
 fs.rmSync(regressionDir, { recursive: true, force: true })
 
 const detected = detectProject(root)
@@ -95,3 +138,5 @@ console.log(`MYVO-2.4C baseline: ${passResult.summary.passed}/${passResult.summa
 console.log(`Negative control: ${failResult.summary.failed} expected failure detected`)
 console.log(`Regression control: ${regressionPass.summary.passed}/3 PASS; ${regressionFail.summary.failed} expected regression detected`)
 console.log(`Checkpoint control: ${checkpointDiff.status}`)
+console.log(`Codemap control: ${codemap.file_count} files indexed`)
+console.log('Living docs control: ADR + Product Bible generated')
