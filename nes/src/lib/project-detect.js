@@ -3,12 +3,34 @@ import path from 'node:path'
 
 const exists = (root, file) => fs.existsSync(path.join(root, file))
 
-export function detectProject(root = process.cwd()) {
-  const packageJsonPath = path.join(root, 'package.json')
-  const packageJson = exists(root, 'package.json')
-    ? JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
-    : null
+function readPackageJson(root) {
+  const file = path.join(root, 'package.json')
+  if (!fs.existsSync(file)) return { exists: false, value: null, issue: null }
+  try {
+    return { exists: true, value: JSON.parse(fs.readFileSync(file, 'utf8')), issue: null }
+  } catch (error) {
+    return {
+      exists: true,
+      value: null,
+      issue: {
+        code: 'NES_INVALID_PACKAGE_JSON',
+        file,
+        message: error.message
+      }
+    }
+  }
+}
 
+function declaredPackageManager(packageJson) {
+  const raw = packageJson?.packageManager
+  if (typeof raw !== 'string') return null
+  const name = raw.split('@')[0]
+  return ['npm', 'pnpm', 'yarn', 'bun'].includes(name) ? name : null
+}
+
+export function detectProject(root = process.cwd()) {
+  const packageInfo = readPackageJson(root)
+  const packageJson = packageInfo.value
   const scripts = packageJson?.scripts ?? {}
   const dependencies = {
     ...(packageJson?.dependencies ?? {}),
@@ -23,7 +45,7 @@ export function detectProject(root = process.cwd()) {
         ? 'bun'
         : exists(root, 'package-lock.json')
           ? 'npm'
-          : null
+          : declaredPackageManager(packageJson) ?? (packageInfo.exists ? 'npm' : null)
 
   const framework = dependencies.next
     ? 'nextjs'
@@ -49,7 +71,7 @@ export function detectProject(root = process.cwd()) {
 
   return {
     root: path.resolve(root),
-    runtime: packageJson ? 'node' : exists(root, 'composer.json') ? 'php' : exists(root, 'pyproject.toml') ? 'python' : 'unknown',
+    runtime: packageInfo.exists ? 'node' : exists(root, 'composer.json') ? 'php' : exists(root, 'pyproject.toml') ? 'python' : 'unknown',
     packageManager,
     framework,
     database: exists(root, 'supabase') ? 'supabase' : null,
@@ -61,6 +83,7 @@ export function detectProject(root = process.cwd()) {
       lint: scripts.lint ?? null,
       test: scripts.test ?? null,
       typecheck: scripts.typecheck ?? scripts['type-check'] ?? null
-    }
+    },
+    issues: packageInfo.issue ? [packageInfo.issue] : []
   }
 }
