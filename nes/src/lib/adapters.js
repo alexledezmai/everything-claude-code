@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const commands = {
+  init: 'node nes/src/cli.js init',
+  doctor: 'node nes/src/cli.js doctor',
   detect: 'node nes/src/cli.js detect',
   verify: 'node nes/src/cli.js verify',
   gate: 'node nes/src/cli.js gate',
@@ -30,7 +32,7 @@ const adapterNotes = {
   ],
   'github-actions': [
     'CI is a runner for NES, not a second implementation of NES policy.',
-    'Fail the workflow when NES reports FAIL, NOT_READY, or REGRESSION.'
+    'Fail the workflow when NES reports FAIL, NOT_READY, REGRESSION, or doctor ERROR.'
   ]
 }
 
@@ -59,7 +61,7 @@ function instructionText(manifest) {
     ...Object.entries(manifest.commands).map(([name, command]) => `- ${name}: \`${command}\``),
     '',
     '## Completion rule',
-    'Do not report a gate as passed, a project as READY, or a regression as resolved unless the corresponding NES command produced that result.'
+    'Do not report a gate as passed, a project as READY, a doctor state as healthy, or a regression as resolved unless the corresponding NES command produced that result.'
   ]
   return `${lines.join('\n')}\n`
 }
