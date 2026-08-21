@@ -1,0 +1,17 @@
+{
+  "id": "MYVO-2.4C",
+  "type": "capability",
+  "checks": [
+    { "id": "real-event-local-durable", "path": "real_event_local_durable", "op": "eq", "expected": true },
+    { "id": "revoked-credential-retained", "path": "revoked_credential_retained_queue", "op": "eq", "expected": true },
+    { "id": "active-credential-resumed", "path": "active_credential_resumed_delivery", "op": "eq", "expected": true },
+    { "id": "duplicate-replay-completed", "path": "duplicate_replay_completed", "op": "eq", "expected": true },
+    { "id": "unauthorized-camera-quarantined", "path": "unauthorized_camera_quarantined", "op": "eq", "expected": true },
+    { "id": "quarantine-code", "path": "quarantine_code", "op": "eq", "expected": "camera_not_authorized" },
+    { "id": "kill-during-sync-retained", "path": "kill_during_sync_retained_queue", "op": "eq", "expected": true },
+    { "id": "kill-recovery-delivered", "path": "kill_recovery_delivered", "op": "eq", "expected": true },
+    { "id": "sent-total", "path": "final_sent_total", "op": "gte", "expected": 5 },
+    { "id": "quarantined-total", "path": "final_quarantined_total", "op": "gte", "expected": 2 }
+  ],
+  "success": { "required": "all" }
+}
