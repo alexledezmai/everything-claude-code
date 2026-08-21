@@ -6,6 +6,7 @@ import { runGate } from './lib/gates.js'
 import { verifyProject } from './lib/verify.js'
 import { createCheckpoint, compareCheckpoints } from './lib/checkpoint.js'
 import { writeCodemap, writeAdr, writeProductBible } from './lib/docs.js'
+import { promoteLearningEvent, loadRules } from './lib/learning.js'
 
 const [, , command, ...args] = process.argv
 const cwd = process.cwd()
@@ -44,7 +45,15 @@ if (command === 'detect') {
   const product = JSON.parse(fs.readFileSync(path.resolve(args[0]), 'utf8'))
   const capabilities = args[1] ? JSON.parse(fs.readFileSync(path.resolve(args[1]), 'utf8')) : []
   print(writeProductBible({ root: args[2] ? path.resolve(args[2]) : cwd, product, capabilities }))
+} else if (command === 'learn') {
+  if (!args[0]) throw new Error('Usage: npm run learn -- <learning-event.json> [project-root]')
+  const event = JSON.parse(fs.readFileSync(path.resolve(args[0]), 'utf8'))
+  print(promoteLearningEvent(args[1] ? path.resolve(args[1]) : cwd, event))
+} else if (command === 'rules') {
+  const scope = args[0] ?? 'all'
+  if (!['all', 'project', 'global'].includes(scope)) throw new Error('Usage: npm run rules -- [all|project|global] [project-root]')
+  print(loadRules(args[1] ? path.resolve(args[1]) : cwd, { scope }))
 } else {
-  process.stderr.write('NES v0.3\nCommands: detect | gate | verify | checkpoint | compare | codemap | adr | bible\n')
+  process.stderr.write('NES v0.4\nCommands: detect | gate | verify | checkpoint | compare | codemap | adr | bible | learn | rules\n')
   process.exitCode = command ? 1 : 0
 }
